@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
+from matplotlib.animation import FuncAnimation, Animation
 
 # --- Parametri dominio rettangolare ---
 Lx = 4.0
