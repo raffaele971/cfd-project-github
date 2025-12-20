@@ -1,0 +1,4 @@
+### Driven cavity solvers
+
+In this folder, I'll be solving a well known case study: the driven cavity, a fundamental benchmark in Computational Fluid Dynamics (CFD) involving an incompressible, viscous fluid in a square container with three stationary walls and a top wall (lid) moving at a constant velocity, creating complex swirling flows (vortices) used to test numerical methods for solving the Navier-Stokes equations. 
+In the rectangular cavity, there will be a psi-zita method for solving fluid flow, focusing on vorticity dynamics and for a better understanding of undergoing vortical structures.
