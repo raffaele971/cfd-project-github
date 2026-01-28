@@ -34,7 +34,7 @@ import matplotlib.pyplot as plt
 # by balancing the fluxes entering and leaving each cell.
 # Discrete conservation is guaranteed by construction.
 
-# Flux limiter (psi) functions
+# Flux limiter (psi) function
 
 def psi_fun(theta, limiter_type):
     """
@@ -59,7 +59,7 @@ a = 1.0            # Advection velocity
 cfl = 0.3          # CFL number
 
 dx = L / N
-x = np.linspace(0, L, N, endpoint=False) + 0.5 * dx  # Cell centers
+x = np.linspace(0, L, N, endpoint=False)   
 
 dt = cfl * dx / abs(a)
 T = L / abs(a)
@@ -67,7 +67,6 @@ Nt = int(T / dt)
 dt = T / Nt
 c = a * dt / dx
 
-eps = 1e-12        # Small number to avoid division by zero
 
 # Initial condition (cell averages)
 phi0 = np.exp(-100 * (x - L / 2)**2)
@@ -92,8 +91,8 @@ for limiter in range(1, 5):
         dphi_minus = phi_im1 - phi_im2
 
         # Theta ratios
-        theta   = dphi_minus / (dphi + eps)
-        theta_p = dphi / (dphi_plus + eps)
+        theta   = dphi_minus / dphi 
+        theta_p = dphi / dphi_plus 
 
         # Flux limiters
         psi     = psi_fun(theta, limiter)
@@ -141,7 +140,7 @@ limiter = 4   # Van Leer limiter
 for N in range(Nmin, Nmax + 1, Nstep):
 
     dx = L / N
-    x = np.linspace(0, L, N, endpoint=False) + 0.5 * dx
+    x = np.linspace(0, L, N, endpoint=False) 
 
     dt = cfl * dx / abs(a)
     Nt = int(T / dt)
@@ -161,8 +160,8 @@ for N in range(Nmin, Nmax + 1, Nstep):
         dphi       = phi - phi_im1
         dphi_minus = phi_im1 - phi_im2
 
-        theta   = dphi_minus / (dphi + eps)
-        theta_p = dphi / (dphi_plus + eps)
+        theta   = dphi_minus / dphi 
+        theta_p = dphi / dphi_plus 
 
         psi     = psi_fun(theta, limiter)
         psi_p   = psi_fun(theta_p, limiter)
@@ -183,3 +182,4 @@ plt.ylabel('Maximum error')
 plt.title('Grid convergence – Finite Volume (Van Leer)')
 plt.grid(True)
 plt.show()
+
