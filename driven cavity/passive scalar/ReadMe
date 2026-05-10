@@ -1,91 +1,106 @@
-This code numerically solves the 2D lid-driven cavity flow, a fundamental test case in CFD, with the addition of passive scalar transport. Both the fluid and scalar are simulated in a unit-square domain, discretized on a staggered grid. The lid-driven geometry consists of three stationary walls and a top “lid” moving at fixed speed, generating rich vortex structures and secondary flows, which makes it ideal for validating Navier-Stokes solvers.
+## 2D Lid-Driven Cavity with Passive Scalar Transport
 
-Governing Equations & Physical Model
-Navier–Stokes equations for incompressible flow:
-∂
-u
-∂
-t
-+
-(
-u
-⋅
-∇
-)
-u
-=
-−
-∇
-p
-+
-ν
-∇
-2
-u
-∇
-⋅
-u
-=
-0
+This code numerically solves a classic CFD problem—**the 2D lid-driven cavity flow**, with the addition of passive scalar transport. The solution domain is a unit square; three walls are stationary, and the top wall ("lid") moves at a constant velocity.
 
-where (\mathbf{u}) is the velocity vector, (p) is pressure, and (\nu) is kinematic viscosity.
+---
 
-Passive scalar transport (e.g., temperature, dye), one-way coupled:
-∂
-ϕ
-∂
-t
-+
-(
-u
-⋅
-∇
-)
-ϕ
-=
-κ
-∇
-2
-ϕ
-Scalar does not affect the velocity field (no buoyancy or source term).
+### Governing Equations
 
-Numerical Methods
-Staggered grid (Harlow–Welch formulation):
-Velocities (U, V), pressure (P), and scalar ((\phi)) are stored at different locations—velocities on cell faces, P and (\phi) at cell centers. This minimizes pressure-velocity decoupling, improves stability, and is a classic choice for incompressible flows.
+The model solves the following equations (in dimensionless form):
 
-Spatial discretization:
+- **Incompressible Navier–Stokes equations:**
 
-Central differences for convection and diffusion terms.
-The pressure Poisson equation (for projection) is assembled via a discrete Laplacian using the delsq operator and solved at every RK stage.
-Time Integration:
+```
+∂u/∂t + (u·∇)u = -∇p + (1/Re) ∇²u
+∇·u = 0
+```
+where:
+- `u = (u, v)` is the velocity vector,
+- `p` is pressure,
+- `Re` is the Reynolds number.
 
-Explicit 4th-order Runge–Kutta (RK4) for both velocity and scalar fields.
-At each RK substage, the intermediate velocities are projected onto a divergence-free (solenoidal) field by solving the pressure Poisson equation, enforcing incompressibility at all steps.
-Boundary conditions:
+- **Passive scalar transport:**
 
-Velocity: No-slip at all stationary walls, constant tangential velocity at the moving lid (U=1, V=0 at the top).
-Scalar: Depending on initialization; the example uses a Gaussian blob initially.
-Stability constraints:
-The time step (Dt) is limited by both Courant-Friedrichs-Lewy (CFL) and diffusion criteria.
+```
+∂ϕ/∂t + (u·∇)ϕ = κ ∇²ϕ
+```
+where:
+- `ϕ` is the scalar quantity (e.g., temperature or concentration),
+- `κ` is scalar diffusivity.
 
-Passive Scalar Solution
-The passive scalar equation is advanced only once per time step (as the momentum), and is affected by the evolving velocity field. The convection term is built via cell-centered velocity and gradients; diffusion uses a standard 5-point Laplacian.
+> **Note:** The scalar is "passive": it is transported and diffused, but does not affect the flow.
 
-Pressure Projection
-In every RK stage and at the final solution update, the code computes the divergent part of the velocity (DivCalc), solves the Poisson equation for pressure (with Neumann BC), and subtracts the pressure gradient to ensure mass conservation (divergence-free field).
+---
 
-Output and Monitoring
-Velocity, streamfunction, scalar concentration, and dissipation rate are plotted periodically.
-The dissipation rate (\epsilon_\phi) is computed as 
-ϵ
-ϕ
-=
-κ
-⟨
-|
-∇
-ϕ
-|
-2
-⟩
-, a measure of mixing.
+### Numerical Methods
+
+- **Spatial discretization:**  
+  - Staggered grid (Harlow–Welch formulation): velocities and pressure/scalar fields are stored at shifted positions for stability and accuracy.
+  - Central differences for convection and diffusion terms.
+
+- **Time integration:**  
+  - Explicit 4th-order Runge–Kutta (RK4) method for time-stepping of both velocity and scalar fields.
+  - At each RK stage, a pressure projection step (solving a Poisson equation) enforces divergence-free velocity.
+
+- **Boundary and initial conditions:**  
+  - *Velocity*: No-slip on every wall; top wall has moving lid with `u=1`, `v=0`.
+  - *Scalar*: Initialized as a Gaussian blob at the center.
+
+- **Time step constraint:**  
+  - Limited by CFL (convection) and diffusion stability conditions.
+
+---
+
+### Main Steps in the Algorithm
+
+1. **Domain and grid setup**
+2. **Parameter definition** (`Re`, `κ`, etc.)
+3. **Initialization** of all variables (velocity, pressure, scalar)
+4. **Set boundary conditions**
+5. **Pressure Poisson equation** assembly for the projection step
+6. **Time loop**:
+    - 4-stage Runge–Kutta for field updates
+    - Pressure correction for incompressibility
+    - Scalar field update using current velocity
+    - Statistical/visual outputs
+
+---
+
+### Output and Monitoring
+
+- The code periodically visualizes:
+    - The velocity field
+    - Streamlines (streamfunction contour)
+    - Passive scalar concentration
+    - Scalar dissipation rate over time:  
+      `ε_ϕ = κ ⟨ |∇ϕ|² ⟩`, average squared gradient of the scalar
+
+---
+
+### Why is this Important?
+
+- **Lid-driven cavity**: a classic CFD benchmark to test numerical methods and study vortex dynamics.
+- **Passive scalar**: lets you investigate mixing, diffusion, and advection in complex flows.
+
+---
+
+#### Example: Variables and Parameters
+
+```
+Domain size: 1 x 1
+Grid: 80 x 80
+Reynolds number: 2000
+Scalar diffusivity κ: 1e-3
+Lid velocity (top wall): U = 1
+```
+
+---
+
+#### References
+
+- [Ghia, U., Ghia, K. N., & Shin, C. T. (1982). High-Re solutions for incompressible flow using the Navier–Stokes equations and a multigrid method. Journal of Computational Physics.](https://doi.org/10.1016/0021-9991(82)90058-4)
+- [Harlow, F. H., & Welch, J. E. (1965). Numerical calculation of time-dependent viscous incompressible flow of fluid with free surface. Physics of Fluids.](https://aip.scitation.org/doi/10.1063/1.1761178)
+
+---
+
+Feel free to explore or adapt the code for your own CFD and transport studies!
