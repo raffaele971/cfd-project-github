@@ -1,1 +1,91 @@
+This code numerically solves the 2D lid-driven cavity flow, a fundamental test case in CFD, with the addition of passive scalar transport. Both the fluid and scalar are simulated in a unit-square domain, discretized on a staggered grid. The lid-driven geometry consists of three stationary walls and a top “lid” moving at fixed speed, generating rich vortex structures and secondary flows, which makes it ideal for validating Navier-Stokes solvers.
 
+Governing Equations & Physical Model
+Navier–Stokes equations for incompressible flow:
+∂
+u
+∂
+t
++
+(
+u
+⋅
+∇
+)
+u
+=
+−
+∇
+p
++
+ν
+∇
+2
+u
+∇
+⋅
+u
+=
+0
+
+where (\mathbf{u}) is the velocity vector, (p) is pressure, and (\nu) is kinematic viscosity.
+
+Passive scalar transport (e.g., temperature, dye), one-way coupled:
+∂
+ϕ
+∂
+t
++
+(
+u
+⋅
+∇
+)
+ϕ
+=
+κ
+∇
+2
+ϕ
+Scalar does not affect the velocity field (no buoyancy or source term).
+
+Numerical Methods
+Staggered grid (Harlow–Welch formulation):
+Velocities (U, V), pressure (P), and scalar ((\phi)) are stored at different locations—velocities on cell faces, P and (\phi) at cell centers. This minimizes pressure-velocity decoupling, improves stability, and is a classic choice for incompressible flows.
+
+Spatial discretization:
+
+Central differences for convection and diffusion terms.
+The pressure Poisson equation (for projection) is assembled via a discrete Laplacian using the delsq operator and solved at every RK stage.
+Time Integration:
+
+Explicit 4th-order Runge–Kutta (RK4) for both velocity and scalar fields.
+At each RK substage, the intermediate velocities are projected onto a divergence-free (solenoidal) field by solving the pressure Poisson equation, enforcing incompressibility at all steps.
+Boundary conditions:
+
+Velocity: No-slip at all stationary walls, constant tangential velocity at the moving lid (U=1, V=0 at the top).
+Scalar: Depending on initialization; the example uses a Gaussian blob initially.
+Stability constraints:
+The time step (Dt) is limited by both Courant-Friedrichs-Lewy (CFL) and diffusion criteria.
+
+Passive Scalar Solution
+The passive scalar equation is advanced only once per time step (as the momentum), and is affected by the evolving velocity field. The convection term is built via cell-centered velocity and gradients; diffusion uses a standard 5-point Laplacian.
+
+Pressure Projection
+In every RK stage and at the final solution update, the code computes the divergent part of the velocity (DivCalc), solves the Poisson equation for pressure (with Neumann BC), and subtracts the pressure gradient to ensure mass conservation (divergence-free field).
+
+Output and Monitoring
+Velocity, streamfunction, scalar concentration, and dissipation rate are plotted periodically.
+The dissipation rate (\epsilon_\phi) is computed as 
+ϵ
+ϕ
+=
+κ
+⟨
+|
+∇
+ϕ
+|
+2
+⟩
+, a measure of mixing.
